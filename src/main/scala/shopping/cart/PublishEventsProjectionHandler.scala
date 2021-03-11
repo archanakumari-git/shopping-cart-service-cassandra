@@ -48,6 +48,6 @@ class PublishEventsProjectionHandler(
        proto.CheckedOut(cartId)
     }
 
-    ScalaPBAny.pack(protoMessage, "shopping-cart-service").toByteArray
+    ScalaPBAny.pack(protoMessage, "shopping-cart-service-cassandra").toByteArray
   }
 }

@@ -21,7 +21,7 @@ object PublishEventsProjection {
   def init(system: ActorSystem[_]): Unit = {
     val sendProducer = createProducer(system)
     val topic =
-      system.settings.config.getString("shopping-cart-service.kafka.topic")
+      system.settings.config.getString("shopping-cart-service-cassandra.kafka.topic")
 
     ShardedDaemonProcess(system).init(
       name = "PublishEventsProjection",

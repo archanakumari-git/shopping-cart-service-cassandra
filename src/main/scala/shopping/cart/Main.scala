@@ -29,9 +29,9 @@ class Main(context: ActorContext[Nothing])
   ClusterBootstrap(system).start()
 
   val grpcInterface =
-    system.settings.config.getString("shopping-cart-service.grpc.interface")
+    system.settings.config.getString("shopping-cart-service-cassandra.grpc.interface")
   val grpcPort =
-    system.settings.config.getInt("shopping-cart-service.grpc.port")
+    system.settings.config.getInt("shopping-cart-service-cassandra.grpc.port")
 
   ShoppingCart.init(system)
   //ScalikeJdbcSetup.init(system)

@@ -21,7 +21,7 @@ class ShoppingCartServiceImpl(system: ActorSystem[_],itemPopularityRepository: I
 
   implicit private val timeout: Timeout =
     Timeout.create(
-      system.settings.config.getDuration("shopping-cart-service.ask-timeout"))
+      system.settings.config.getDuration("shopping-cart-service-cassandra.ask-timeout"))
 
   private val sharding = ClusterSharding(system)
 

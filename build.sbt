@@ -1,4 +1,4 @@
-name := "shopping-cart-service"
+name := "shopping-cart-service-cassandra"
 
 organization := "com.lightbend.akka.samples"
 organizationHomepage := Some(url("https://akka.io"))

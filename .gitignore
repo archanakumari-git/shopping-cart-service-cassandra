@@ -1,5 +1,6 @@
 target/
 .bsp/
+.null/
 
 .settings
 .project

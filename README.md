@@ -1,15 +1,15 @@
 ## Running the sample code
 
-1. **Start Cassandra and Kafka from the shopping-cart-service:**
+1. **Start Cassandra and Kafka from the shopping-cart-service-cassandra:**
     ```
     docker-compose up -d
     ```
 
 2. **Run ddl scripts to create tables in Cassandra**
    ```
-     docker exec -i shopping-cart-service_cassandra_1 cqlsh -t < ddl-scripts/create_tables.cql
+     docker exec -i shopping-cart-service-cassandra_cassandra_1 cqlsh -t < ddl-scripts/create_tables.cql
      
-     docker exec -i shopping-cart-service_cassandra_1 cqlsh -t < ddl-scripts/create_user_tables.cql
+     docker exec -i shopping-cart-service-cassandra_cassandra_1 cqlsh -t < ddl-scripts/create_user_tables.cql
    ```
 3. **Start a first node:**
 

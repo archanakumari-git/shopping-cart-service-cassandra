@@ -1,18 +1,31 @@
 package shopping.cart
 
 import akka.actor.typed.ActorSystem
+import akka.actor.typed.scaladsl.AskPattern._
+import akka.actor.typed.scaladsl.Behaviors
 import akka.grpc.scaladsl.{ServerReflection, ServiceHandler}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
+import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, MediaTypes, StatusCodes}
+import akka.http.scaladsl.server.ContentNegotiator.Alternative.MediaType
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import shopping.cart.ShoppingCart.AddItem
-import shopping.cart.proto.{GetItemPopularityRequest, ShoppingCartServiceHandler}
+import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.stream.ActorMaterializer
+import akka.util.Timeout
+import shopping.cart.proto.{GetItemPopularityRequest, GetItemPopularityResponse, ShoppingCartServiceHandler}
+import spray.json.DefaultJsonProtocol.{jsonFormat2, _}
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success}
-import akka.actor.typed.scaladsl.AskPattern._
+import spray.json.{DefaultJsonProtocol, enrichAny}
+
+case class Item(itemId: String, popularityCount:Long)
+object JsonProtocol extends DefaultJsonProtocol{
+  implicit val itemFormat = jsonFormat2(Item)
+  //implicit val getItemResponse = jsonFormat4(shopping.cart.proto.GetItemPopularityResponse)
+
+}
 
 object ShoppingCartServer {
 
@@ -24,9 +37,27 @@ object ShoppingCartServer {
     implicit val sys: ActorSystem[_] = system
     implicit val ec: ExecutionContext =
       system.executionContext
+    implicit val executionContext: ExecutionContextExecutor = sys.executionContext
+
+    def getItems(itemId: String): Future[Item] =
+      {
+        implicit val timeout: Timeout = 5.seconds
+         grpcService.getItemPopularity(GetItemPopularityRequest(itemId)).map(x=>Item(x.itemId,x.popularityCount))
+//          .onComplete {
+//            case Success(res) => println(res)
+//            case Failure(_)   => throw new IllegalArgumentException//("something wrong")
+//          }
+      }
+
     val httpService: Route = path("getItem") {
-      get {
-        complete("sample service!!!")
+      parameter("itemId") {itemId=>
+        get {
+          import JsonProtocol._
+          complete{
+              getItems(itemId)
+                .map(value=> HttpResponse(entity = HttpEntity(MediaTypes.`application/json`,value.toJson.prettyPrint)))
+            }
+        }
       }
     }
 

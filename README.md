@@ -46,4 +46,18 @@
    ```
    grpcurl -d '{\"cartId\":\"cart1\"}' -plaintext 127.0.0.1:8101 shoppingcart.ShoppingCartService.Checkout
    ```
+   *Step-5 : Check the quantity of the cart:*
+   ```
+   grpcurl -d '{\"cartId\":\"cart1\"}' -plaintext 127.0.0.1:8101 shoppingcart.ShoppingCartService.Checkout
+   ```
+5. **Testing the akka http service :-**
+   ```
+   Launch advanced rest client and hit the given url :-
+  
+   http://localhost:8101/getItem?itemId=socks
+   
+   Test by changing itemId for items added in the cart
+
+   ```   
+
    

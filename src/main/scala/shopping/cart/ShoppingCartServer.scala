@@ -1,29 +1,22 @@
 package shopping.cart
 
 import akka.actor.typed.ActorSystem
-import akka.actor.typed.scaladsl.AskPattern._
-import akka.actor.typed.scaladsl.Behaviors
 import akka.grpc.scaladsl.{ServerReflection, ServiceHandler}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, MediaTypes, StatusCodes}
-import akka.http.scaladsl.server.ContentNegotiator.Alternative.MediaType
+import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, MediaTypes}
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.ActorMaterializer
+import akka.http.scaladsl.server.{Route, RouteResult}
 import akka.util.Timeout
-import shopping.cart.proto.{GetItemPopularityRequest, GetItemPopularityResponse, ShoppingCartServiceHandler}
-import spray.json.DefaultJsonProtocol.{jsonFormat2, _}
+import shopping.cart.proto.{GetItemPopularityRequest, ShoppingCartServiceHandler}
+import spray.json.{DefaultJsonProtocol, enrichAny}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success}
-import spray.json.{DefaultJsonProtocol, enrichAny}
 
 case class Item(itemId: String, popularityCount:Long)
 object JsonProtocol extends DefaultJsonProtocol{
   implicit val itemFormat = jsonFormat2(Item)
-  //implicit val getItemResponse = jsonFormat4(shopping.cart.proto.GetItemPopularityResponse)
 
 }
 
@@ -43,10 +36,7 @@ object ShoppingCartServer {
       {
         implicit val timeout: Timeout = 5.seconds
          grpcService.getItemPopularity(GetItemPopularityRequest(itemId)).map(x=>Item(x.itemId,x.popularityCount))
-//          .onComplete {
-//            case Success(res) => println(res)
-//            case Failure(_)   => throw new IllegalArgumentException//("something wrong")
-//          }
+
       }
 
     val httpService: Route = path("getItem") {
@@ -67,8 +57,13 @@ object ShoppingCartServer {
         // ServerReflection enabled to support grpcurl without import-path and proto parameters
         ServerReflection.partial(List(proto.ShoppingCartService))
       )
+//convert akka grpc function to route
+    val handlerRoute: Route = { ctx => service(ctx.request).map(RouteResult.Complete) }
+    //akka http service simply combined with existing grpc functions
+   // val allRoutes = concat(httpService,handle(service))
 
-    val allRoutes = concat(httpService,handle(service))
+    //akka http interoperability with akka grpc
+    val allRoutes = concat(httpService,handlerRoute)
 
     val bound =
       Http()
